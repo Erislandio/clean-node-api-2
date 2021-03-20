@@ -1,10 +1,6 @@
-import { InvalidParamError } from '../errors/invalidParamError'
-import { MissingParamError } from '../errors/missingParamError'
-import { badRequest } from '../helpers/httpHelpers'
-import { Controller } from '../protocols/controller'
-import { EmailValidator } from '../protocols/emailValidator'
-import { HttpRequest, HttpResponse } from '../protocols/http'
-
+import { InvalidParamError, MissingParamError } from '../errors'
+import { badRequest, internalServerError } from '../helpers/httpHelpers'
+import { HttpRequest, HttpResponse, EmailValidator, Controller } from '../protocols'
 export class SignUpController implements Controller {
   private readonly emailValidator: EmailValidator
 
@@ -21,10 +17,14 @@ export class SignUpController implements Controller {
       }
     }
 
-    const isValid = this.emailValidator.isValid(httpRequest.body.email)
+    try {
+      const isValid = this.emailValidator.isValid(httpRequest.body.email)
 
-    if (!isValid) {
-      return badRequest(new InvalidParamError('email'))
+      if (!isValid) {
+        return badRequest(new InvalidParamError('email'))
+      }
+    } catch (error) {
+      return internalServerError()
     }
   }
 }
